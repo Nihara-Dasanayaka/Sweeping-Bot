@@ -1,10 +1,5 @@
 Motor			KEYWORD1
 
 speedUp			KEYWORD2
-slowDown		KEYWORD2
 stopNow			KEYWORD2
 reverse			KEYWORD2
-leanLeft		KEYWORD2
-leanRight		KEYWORD2
-turnLeft		KEYWORD2
-turnRight		KEYWORD2

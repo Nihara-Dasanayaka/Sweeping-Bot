@@ -7,6 +7,8 @@ class Motor {
 
 	public:
 		Motor(int INA, int INB, int EN, int BaseSpeed);
+		void speedUp(int speed);
+		void reverse(int speed);
 		void stopNow();
 
 	private:
