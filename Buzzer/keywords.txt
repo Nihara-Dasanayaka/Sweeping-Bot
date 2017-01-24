@@ -1,0 +1,5 @@
+Buzzer		KEYWORD1
+
+alertTone	KEYWORD2
+startTone	KEYWORD2
+varyTone	KEYWORD2
