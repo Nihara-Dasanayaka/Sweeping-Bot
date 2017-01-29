@@ -1,15 +1,17 @@
 #include "Arduino.h"
 #include "Sonar.h"
 
-Sonar::Sonar(int ECHO, int TRIG, int TimeOut, float SoundFactor) {
+Sonar::Sonar(int ECHO, int TRIG, int TimeOut, float SoundFactor, int Notifier) {
 	// Set pin modes
 	pinMode(TRIG, OUTPUT);
 	pinMode(ECHO, INPUT);
+	pinMode(Notifier, OUTPUT);
 	// Initiate instance variables
 	_TRIG = TRIG;
 	_ECHO = ECHO;
 	_TimeOut = TimeOut;
 	_SoundFactor = SoundFactor; // <- 14.5 ~ 15.5
+	_Notifier = Notifier;
 }
 
 long Sonar::time() {
@@ -49,9 +51,19 @@ bool Sonar::near(long range) {
 	// Calculate the average distance
 	long current_distance = (read_1 + read_2 + read_3) / 3;
 	// Decide
-	if (current_distance <= range) {
+	if (current_distance <= range && current_distance != 0) {
+		notify(DANGER);
 		return true;
 	} else {
+		notify(SAFE);
 		return false;
+	}
+}
+
+void Sonar::notify(bool state) {
+	if (state == DANGER) {
+		digitalWrite(_Notifier, HIGH);
+	} else {
+		digitalWrite(_Notifier, LOW);
 	}
 }

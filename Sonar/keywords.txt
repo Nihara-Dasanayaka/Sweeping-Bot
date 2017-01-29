@@ -1,3 +1,7 @@
-Sonar			KEYWORD1
+Sonar		KEYWORD1
 
-distance		KEYWORD2
+distance	KEYWORD2
+near		KEYWORD2
+
+SAFE		LITERAL1
+DANGER		LITERAL1
