@@ -57,7 +57,7 @@ Buzzer buzzer(Buzzer_Pin);
 void scanArea();
 void robotMove();
 void avoidObstacles();
-void turnAround(bool LEFT);
+void turnAround(bool RIGHT);
 
 /******************************************************************************/
 /********************************* Variables **********************************/
@@ -127,7 +127,7 @@ void turnAround(bool RIGHT) {
     leftMotor.speedUp(100);
     rightMotor.reverse(100);
   }
-  delay(500);
+  delay(350);
   leftMotor.stopNow();
   rightMotor.stopNow();
   delay(150);
