@@ -7,7 +7,7 @@
 #define sonarA_TRIG     45
 #define sonarB_ECHO     46
 #define sonarB_TRIG     47
-#define sonarC_ECHO     48 
+#define sonarC_ECHO     48
 #define sonarC_TRIG     49
 #define sonarD_ECHO     50
 #define sonarD_TRIG     51
@@ -55,9 +55,9 @@ Buzzer buzzer(Buzzer_Pin);
 /********************************* Templates **********************************/
 /******************************************************************************/
 void scanArea();
-int calculateSpeed();
-void robotMove(int Speed);
+void robotMove();
 void avoidObstacles();
+void turnAround(bool LEFT);
 
 /******************************************************************************/
 /********************************* Variables **********************************/
@@ -74,82 +74,61 @@ void setup() {
 void loop() {
   // Scan the surroundings
   scanArea();
-  // Calculate speed accordingly
-  robotMove(calculateSpeed());
+  // Move robot
   avoidObstacles();
-  delay(10);
+  robotMove();
+  delay(2);
 }
 
 /*
- An array of 1's and 0's will be created according to position
+  An array of 1's and 0's will be created according to position
 */
 void scanArea() {
-  surrounding[0] = sonarA.near(DANGER_ZONE) ? 1 : 0;
-  surrounding[1] = sonarB.near(DANGER_ZONE) ? 1 : 0;
+  surrounding[0] = sonarA.near(DANGER_ZONE - 5) ? 1 : 0;
+  surrounding[1] = sonarB.near(DANGER_ZONE - 1) ? 1 : 0;
   surrounding[2] = sonarC.near(DANGER_ZONE) ? 1 : 0;
-  surrounding[3] = sonarD.near(DANGER_ZONE) ? 1 : 0;
-  surrounding[4] = sonarE.near(DANGER_ZONE) ? 1 : 0;
+  surrounding[3] = sonarD.near(DANGER_ZONE - 1) ? 1 : 0;
+  surrounding[4] = sonarE.near(DANGER_ZONE - 5) ? 1 : 0;
 }
 
 /*
- The speed will be calculated according to the position
+  Move robot with the calculated speed with a delay of 2 ms
 */
-int calculateSpeed() {
-  int SPEED = 0;
-  for (int i = 0; i < 5; i++) {
-    SPEED += surrounding[i] * (i + 1) * 10;
-  }
-  return SPEED;
+void robotMove() {
+  leftMotor.speedUp(leftMotorSpeed);
+  rightMotor.speedUp(rightMotorSpeed);
 }
 
-void robotMove(int Speed) {
-  leftMotor.speedUp(Speed);
-  rightMotor.speedUp(Speed);
-}
-
+/*
+  Front Sonar encouters will make the robot turn around
+*/
 void avoidObstacles() {
-  if (surrounding[2] == 1) {
-    leftMotor.stopNow();
-    rightMotor.stopNow();
+  if (surrounding[0] == 1) {
+    turnAround(true);
+  } else if (surrounding[1] == 1) {
+    turnAround(true);
+  } else if (surrounding[2] == 1) {
+    turnAround(true);
+  } else if (surrounding[3] == 1) {
+    turnAround(false);
+  } else if (surrounding[4] == 1) {
+    turnAround(false);
   }
 }
 
 /*
-sonarA.near(10);
-  sonarB.near(10);
-  sonarC.near(10);
-  sonarD.near(10);
-  sonarE.near(10);
-  delay(100);
-  /*
-  // Move forward for 2 seconds
-  leftMotor.speedUp(100);
-  rightMotor.speedUp(100);
-  delay(3000);
-  // Play alert tone
-  buzzer.alertTone();
-  // Stop
-  rightMotor.stopNow();
+  Turn the robot around to avoid front obstacle
+*/
+void turnAround(bool RIGHT) {
+  if (!RIGHT) {
+    leftMotor.reverse(100);
+    rightMotor.speedUp(100);
+  } else {
+    leftMotor.speedUp(100);
+    rightMotor.reverse(100);
+  }
+  delay(500);
   leftMotor.stopNow();
-  delay(5000);
-  // Play alter tone
-  buzzer.alertTone();
-  // Reverse for 2 seconds
-  leftMotor.reverse(100);
-  rightMotor.reverse(100);
-  delay(3000);
-  // Play alert tone
-  buzzer.alertTone();
-  // Stop
   rightMotor.stopNow();
-  leftMotor.stopNow();
-  delay(5000);*/
-  /*
-  sonarA.near(10);
-  sonarB.near(10);
-  sonarC.near(10);
-  sonarD.near(10);
-  sonarE.near(10);  
-  delay(100);*/
-
-
+  delay(150);
+}
