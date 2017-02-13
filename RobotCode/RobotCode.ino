@@ -74,10 +74,10 @@ void setup() {
 void loop() {
   // Scan the surroundings
   scanArea();
-  // Move robot
+  // Avoid any obstacles
   avoidObstacles();
+  // Move straight
   robotMove();
-  delay(2);
 }
 
 /*
@@ -130,5 +130,5 @@ void turnAround(bool RIGHT) {
   delay(350);
   leftMotor.stopNow();
   rightMotor.stopNow();
-  delay(150);
+  delay(10);
 }
