@@ -28,7 +28,7 @@ void Buzzer::alertTone() {
 		varyTone(20, 75);
 		varyTone(20, 50);
 		varyTone(20, 25);		
-		varyTone(20, 0);		
+		varyTone(1, 0);		
 	}
 }
 
@@ -36,8 +36,15 @@ void Buzzer::startTone() {
 	for (int i = 0; i < 5; i++) {
 		varyTone(20, 10);
 		varyTone(20, 25);
-		varyTone(20, 0);
+		varyTone(1, 0);
 	}
+}
+
+void Buzzer::stuckTone() {
+	varyTone(30, 10);
+	varyTone(5, 0);
+	varyTone(20, 200);
+	varyTone(1, 0);
 }
 
 void Buzzer::varyTone(int time, int freq) {

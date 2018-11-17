@@ -8,7 +8,8 @@ class Buzzer {
 	public:
 		Buzzer(int Power);
 		void alertTone();
-		void startTone();		
+		void startTone();
+		void stuckTone();
 
 	private:
 		void initiateBuzzer();

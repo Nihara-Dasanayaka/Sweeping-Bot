@@ -23,7 +23,13 @@ void Motor::speedUp(int speed) {
 	digitalWrite(_INA, HIGH);
 	digitalWrite(_INB, LOW);
 	// Set speed
-	analogWrite(_EN, _BaseSpeed + speed);
+	int s = _BaseSpeed + speed;
+	if (s > 255) {
+		s = 255;
+	} else if (s < 0) {
+		s = 0;
+	}
+	analogWrite(_EN, s);
 }
 
 void Motor::reverse(int speed) {
@@ -31,7 +37,13 @@ void Motor::reverse(int speed) {
 	digitalWrite(_INA, LOW);
 	digitalWrite(_INB, HIGH);
 	// Set speed
-	analogWrite(_EN, _BaseSpeed + speed);
+	int s = _BaseSpeed + speed;
+	if (s > 255) {
+		s = 255;
+	} else if (s < 0) {
+		s = 0;
+	}
+	analogWrite(_EN, s);
 }
 
 void Motor::stopNow() {

@@ -29,8 +29,8 @@ const int DANGER_ZONE = 10;
 #define R_Motor_B       32
 #define L_Motor_EN      8
 #define R_Motor_EN      9
-#define L_Motor_Speed   150
-#define R_Motor_Speed   150
+#define L_Motor_Speed   200
+#define R_Motor_Speed   200
 /********************************** Buzzer ************************************/
 #define Buzzer_Pin      10
 
@@ -55,9 +55,9 @@ Buzzer buzzer(Buzzer_Pin);
 /*********************************** MPU **************************************/
 /******************************************************************************/
 const int MPU = 0x68;
-const int MIN_GYRO = -3;
-const int MAX_GYRO = 3;
+const int GYRO_LIMIT = 3;
 const int MAX_TEMP = 40;
+const int GYRO_SAMPLES = 5;
 
 /******************************************************************************/
 /********************************* Templates **********************************/
@@ -69,8 +69,11 @@ void turnAround(bool RIGHT);
 void initiateVariables();
 void configureMPU();
 void readMPU();
+void fillArray(int16_t value, int16_t arr[]);
 bool isStuck();
 bool overHeating();
+bool checkElements(int16_t arr[]);
+void printArray(int16_t arr[]);
 
 /******************************************************************************/
 /********************************* Variables **********************************/
@@ -78,9 +81,10 @@ bool overHeating();
 short surrounding[5] = {0, 0, 0, 0, 0};
 int leftMotorSpeed = 0, rightMotorSpeed = 0;
 int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
-int16_t Gx[4] = {0, 0, 0, 0};
-int16_t Gy[4] = {0, 0, 0, 0};
-int16_t Gz[4] = {0, 0, 0, 0};
+int16_t Gx[GYRO_SAMPLES] = {10, 10, 10, 10, 10};
+int16_t Gy[GYRO_SAMPLES] = {10, 10, 10, 10, 10};
+int16_t Gz[GYRO_SAMPLES] = {10, 10, 10, 10, 10};
+bool stucked = false;
 
 void setup() {
   // Play start tone
@@ -97,13 +101,16 @@ void setup() {
 
 void loop() {
   // Check if the system is too hot
+  scanArea();
   readMPU();
   if (!overHeating()) {
     Serial.println("I am cool!");
-    if (!isStuck) {
+    if (!isStuck()) {
       Serial.println("I am freee!");
-      // Scan surrounding area and move
+      avoidObstacles();
+      robotMove();
     } else {
+      buzzer.stuckTone();
       Serial.println("I am stuck!");
       // Move a bit away
     }
@@ -113,8 +120,10 @@ void loop() {
     rightMotor.stopNow();
     delay(500);
   }
-  // Scan the surroundings
-  /*
+  delay(100);
+}
+
+void logSonars() {
   long a = sonarA.distance();
   Serial.print("A is - ");
   Serial.print(a);
@@ -130,17 +139,6 @@ void loop() {
   long e = sonarE.distance();
   Serial.print("  E is - ");
   Serial.println(e);
-  delay(100);*/
-  
-  //scanArea();
-  // Avoid any obstacles
-  //avoidObstacles();
-  // Move straight
-  leftMotor.speedUp(200);
-  rightMotor.speedUp(200);
-  Serial.println();Serial.println();Serial.println();
-  delay(100);
-  //robotMove();
 }
 
 /*
@@ -158,8 +156,12 @@ void scanArea() {
   Move robot with the calculated speed with a delay of 2 ms
 */
 void robotMove() {
-  leftMotor.speedUp(leftMotorSpeed);
-  rightMotor.speedUp(rightMotorSpeed);
+  leftMotor.speedUp(leftMotorSpeed + 10);
+  rightMotor.speedUp(rightMotorSpeed - 10);
+  delay(50);
+  leftMotor.speedUp(leftMotorSpeed - 10);
+  rightMotor.speedUp(rightMotorSpeed + 10);
+  delay(50);
 }
 
 /*
@@ -226,28 +228,22 @@ void readMPU() {
   GyZ = (Wire.read() << 8 | Wire.read()) / 131;
   // Fill out the arrays
   fillArray(GyX, Gx);
-  Serial.print("Gx = ");
-  printArray(Gx);
   fillArray(GyY, Gy);
-  Serial.print("Gy = ");
-  printArray(Gy);
   fillArray(GyZ, Gz);
-  Serial.print("Gz = ");
-  printArray(Gz);
 }
 
-void fillArray(int16_t value, int16_t arr) {
-  arr[0] = arr[1];
-  arr[1] = arr[2];
-  arr[2] = arr[3];
-  arr[3] = value;
+void fillArray(int16_t value, int16_t arr[]) {
+  for (int i = 1; i < GYRO_SAMPLES; i++) {
+    arr[i - 1] = arr[i];
+  }
+  arr[GYRO_SAMPLES - 1] = value;
 }
 
-void printArray(int16_t arr) {
+void printArray(int16_t arr[]) {
   Serial.print("{");
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < GYRO_SAMPLES; i++) {
     Serial.print(arr[i]);
-    if (i != 3) {
+    if (i != (GYRO_SAMPLES - 1)) {
       Serial.print(", ");
     }
   }
@@ -259,12 +255,7 @@ void printArray(int16_t arr) {
  */
 bool isStuck() {
   if (checkElements(Gx) && checkElements(Gy) && checkElements(Gz)) {
-    if (
-      (Gx[0] < MAX_GYRO && Gx[0] > MIN_GYRO) && 
-      (Gy[0] < MAX_GYRO && Gy[0] > MIN_GYRO) && 
-      (Gz[0] < MAX_GYRO && Gz[0] > MIN_GYRO)) {
-      return true;
-    }
+    return true;
   }
   return false;
 }
@@ -272,14 +263,13 @@ bool isStuck() {
 /**
  * Checks if all the elements in the array are close by values
  */
-bool checkElements(int arr[]) {
-  int THRESHOLD = 1;
-  int normal = 0;
-  for (int n = 0; n < 4; n++) {
-    normal += arr[n];
+bool checkElements(int16_t arr[]) {
+  int16_t normal = 0;
+  for (int n = 0; n < GYRO_SAMPLES; n++) {
+    normal += abs(arr[n]);
   }
-  normal = (normal / 4) - arr[0];
-  return (normal < THRESHOLD);
+  normal = (normal / GYRO_SAMPLES);
+  return ((normal < GYRO_LIMIT));
 }
 
 /**
