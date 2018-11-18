@@ -54,9 +54,9 @@ Buzzer buzzer(Buzzer_Pin);
 /******************************************************************************/
 /*********************************** MPU **************************************/
 /******************************************************************************/
-const int MPU = 0x68;
-const int GYRO_LIMIT = 3;
-const int MAX_TEMP = 40;
+const int MPU          = 0x68;
+const int GYRO_LIMIT   = 3;
+const int MAX_TEMP     = 40;
 const int GYRO_SAMPLES = 5;
 
 /******************************************************************************/
@@ -74,6 +74,7 @@ bool isStuck();
 bool overHeating();
 bool checkElements(int16_t arr[]);
 void printArray(int16_t arr[]);
+void unStuck();
 
 /******************************************************************************/
 /********************************* Variables **********************************/
@@ -84,7 +85,6 @@ int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 int16_t Gx[GYRO_SAMPLES] = {10, 10, 10, 10, 10};
 int16_t Gy[GYRO_SAMPLES] = {10, 10, 10, 10, 10};
 int16_t Gz[GYRO_SAMPLES] = {10, 10, 10, 10, 10};
-bool stucked = false;
 
 void setup() {
   // Play start tone
@@ -106,12 +106,13 @@ void loop() {
   if (!overHeating()) {
     Serial.println("I am cool!");
     if (!isStuck()) {
-      Serial.println("I am freee!");
+      Serial.println("I am fre!");
       avoidObstacles();
       robotMove();
     } else {
       buzzer.stuckTone();
       Serial.println("I am stuck!");
+      unStuck();
       // Move a bit away
     }
   } else {
@@ -121,6 +122,18 @@ void loop() {
     delay(500);
   }
   delay(100);
+}
+
+void unStuck() {
+  leftMotor.reverse(100);
+  rightMotor.reverse(100);
+  delay(25);
+  leftMotor.reverse(100);
+  rightMotor.speedUp(100);
+  delay(500);
+  leftMotor.stopNow();
+  rightMotor.stopNow();
+  delay(10);
 }
 
 void logSonars() {
@@ -156,11 +169,11 @@ void scanArea() {
   Move robot with the calculated speed with a delay of 2 ms
 */
 void robotMove() {
-  leftMotor.speedUp(leftMotorSpeed + 10);
-  rightMotor.speedUp(rightMotorSpeed - 10);
+  leftMotor.speedUp(leftMotorSpeed + 20);
+  rightMotor.speedUp(rightMotorSpeed - 20);
   delay(50);
-  leftMotor.speedUp(leftMotorSpeed - 10);
-  rightMotor.speedUp(rightMotorSpeed + 10);
+  leftMotor.speedUp(leftMotorSpeed - 20);
+  rightMotor.speedUp(rightMotorSpeed + 20);
   delay(50);
 }
 
